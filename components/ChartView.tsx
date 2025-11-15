@@ -33,6 +33,18 @@ export default function ChartView({ monthly }: ChartViewProps) {
     rentNPV: record.rentCumulativeNPV,
   }));
 
+  // Calculate shared y-axis domain from both datasets
+  const allNPVValues = monthly.flatMap((r) => [
+    r.buyCumulativeNPV,
+    r.rentCumulativeNPV,
+  ]);
+  const minNPV = Math.min(...allNPVValues);
+  const maxNPV = Math.max(...allNPVValues);
+  // Add some padding (5% on each side, or minimum 1000 if range is very small)
+  const range = maxNPV - minNPV;
+  const padding = range > 0 ? range * 0.05 : Math.abs(minNPV) * 0.05 || 1000;
+  const yAxisDomain = [minNPV - padding, maxNPV + padding];
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
       <h3 className="text-xl font-semibold mb-4">Cumulative NPV Over Time</h3>
@@ -44,6 +56,7 @@ export default function ChartView({ monthly }: ChartViewProps) {
             label={{ value: 'Month', position: 'insideBottom', offset: -5 }}
           />
           <YAxis
+            domain={yAxisDomain}
             tickFormatter={(value) => formatCurrency(value)}
             label={{ value: 'Cumulative NPV', angle: -90, position: 'insideLeft' }}
           />

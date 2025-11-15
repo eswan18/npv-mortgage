@@ -86,7 +86,8 @@ export function runModel(inputs: Inputs): ModelResult {
   }
 
   // Month 0 - Initial cash flows
-  const buyCF0 = downPayment + closingCosts + loanFees;
+  // Outflows are negative
+  const buyCF0 = -(downPayment + closingCosts + loanFees);
   const rentCF0 = 0;
 
   const buyDiscountedCF0 = buyCF0 * discountFactors[0];
@@ -147,14 +148,17 @@ export function runModel(inputs: Inputs): ModelResult {
     const insurance = insuranceMonthly;
     const hoa = inputs.hoaMonthly;
 
-    const buyOperatingOutflow =
+    // Operating costs (outflows are negative)
+    const buyOperatingOutflow = -(
       mortgagePaymentThisMonth +
       propertyTax +
       maintenance +
       insurance +
-      hoa;
+      hoa
+    );
 
     // Sale proceeds (only in sell month)
+    // Sale proceeds are positive (inflow)
     let saleProceeds = 0;
     if (i === sellMonthIndex) {
       const remainingLoanBalance = mortgageBalances[i];
@@ -162,14 +166,14 @@ export function runModel(inputs: Inputs): ModelResult {
       const sellingCosts =
         grossSale * inputs.sellingCostPercentOfHomeValue;
       const netSaleProceeds = grossSale - sellingCosts - remainingLoanBalance;
-      saleProceeds = netSaleProceeds;
+      saleProceeds = netSaleProceeds; // positive (inflow)
     }
 
-    // Buy cash flow
-    const buyCF = buyOperatingOutflow - saleProceeds; // sale proceeds reduce cost
+    // Buy cash flow: negative outflows + positive sale proceeds
+    const buyCF = buyOperatingOutflow + saleProceeds;
 
-    // Rent cash flow
-    const rentCF = rentPayments[i] + renterInsuranceMonthly + otherRentCostsMonthly;
+    // Rent cash flow (outflows are negative)
+    const rentCF = -(rentPayments[i] + renterInsuranceMonthly + otherRentCostsMonthly);
 
     // Discounted cash flows
     const buyDiscountedCF = buyCF * discountFactors[i];
@@ -212,10 +216,12 @@ export function runModel(inputs: Inputs): ModelResult {
   }
 
   // Calculate break-even
+  // Break-even is when buying becomes better (less negative) than renting
+  // With correct signs: buyCumulativeNPV >= rentCumulativeNPV means buying is better
   let breakEvenMonthIndex: number | undefined;
   let breakEvenYears: number | undefined;
   for (let i = 0; i <= months; i++) {
-    if (monthly[i].buyCumulativeNPV <= monthly[i].rentCumulativeNPV) {
+    if (monthly[i].buyCumulativeNPV >= monthly[i].rentCumulativeNPV) {
       breakEvenMonthIndex = i;
       breakEvenYears = i / 12;
       break;

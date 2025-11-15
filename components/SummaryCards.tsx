@@ -16,7 +16,10 @@ function formatCurrency(value: number): string {
 }
 
 export default function SummaryCards({ summary }: SummaryCardsProps) {
-  const isBuyBetter = summary.npvDifference > 0;
+  // npvDifference = rentTotalNPV - buyTotalNPV
+  // If negative: buying is better (buy NPV is less negative/higher)
+  // If positive: renting is better (rent NPV is less negative/higher)
+  const isBuyBetter = summary.npvDifference < 0;
   const advantage = Math.abs(summary.npvDifference);
 
   return (
