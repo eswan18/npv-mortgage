@@ -151,8 +151,8 @@ export default function DataTable({ monthly }: DataTableProps) {
   const rentTotalPages = Math.ceil(monthly.length / itemsPerPage);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 w-full">
+      <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold">Month-by-Month Details</h3>
         <button
           onClick={() => exportToCSV(monthly)}
