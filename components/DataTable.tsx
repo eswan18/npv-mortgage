@@ -131,6 +131,7 @@ function TablePagination({
 export default function DataTable({ monthly }: DataTableProps) {
   const [buyPage, setBuyPage] = useState(1);
   const [rentPage, setRentPage] = useState(1);
+  const [showDetailColumns, setShowDetailColumns] = useState(false);
   const itemsPerPage = 50;
 
   const buyPaginatedData = useMemo(() => {
@@ -162,22 +163,41 @@ export default function DataTable({ monthly }: DataTableProps) {
 
       {/* Buy Scenario Table */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h4 className="text-lg font-semibold mb-4">Buy Scenario</h4>
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-lg font-semibold">Buy Scenario</h4>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showDetailColumns}
+              onChange={(e) => setShowDetailColumns(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+            />
+            <span className="text-sm text-gray-700">Show Detail Columns</span>
+          </label>
+        </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50 sticky top-0">
               <tr>
                 <th className="px-3 py-3 text-left font-medium text-gray-700">Month</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Pmt</th>
-                <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Int</th>
-                <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Prin</th>
-                <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Bal</th>
+                {showDetailColumns && (
+                  <>
+                    <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Int</th>
+                    <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Prin</th>
+                    <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Bal</th>
+                  </>
+                )}
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Prop Tax</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Maint</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Insurance</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">HOA</th>
-                <th className="px-3 py-3 text-right font-medium text-gray-700">Home Value</th>
-                <th className="px-3 py-3 text-right font-medium text-gray-700">% Paid Off</th>
+                {showDetailColumns && (
+                  <>
+                    <th className="px-3 py-3 text-right font-medium text-gray-700">Home Value</th>
+                    <th className="px-3 py-3 text-right font-medium text-gray-700">% Paid Off</th>
+                  </>
+                )}
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Equity</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Buy CF</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">NPV (Month)</th>
@@ -191,15 +211,19 @@ export default function DataTable({ monthly }: DataTableProps) {
                   <td className="px-3 py-2 text-right text-gray-900">
                     {formatCurrency(record.mortgagePayment)}
                   </td>
-                  <td className="px-3 py-2 text-right text-gray-900">
-                    {formatCurrency(record.mortgageInterest)}
-                  </td>
-                  <td className="px-3 py-2 text-right text-gray-900">
-                    {formatCurrency(record.mortgagePrincipal)}
-                  </td>
-                  <td className="px-3 py-2 text-right text-gray-900">
-                    {formatCurrency(record.mortgageBalance)}
-                  </td>
+                  {showDetailColumns && (
+                    <>
+                      <td className="px-3 py-2 text-right text-gray-900">
+                        {formatCurrency(record.mortgageInterest)}
+                      </td>
+                      <td className="px-3 py-2 text-right text-gray-900">
+                        {formatCurrency(record.mortgagePrincipal)}
+                      </td>
+                      <td className="px-3 py-2 text-right text-gray-900">
+                        {formatCurrency(record.mortgageBalance)}
+                      </td>
+                    </>
+                  )}
                   <td className="px-3 py-2 text-right text-gray-900">
                     {formatCurrency(record.propertyTax)}
                   </td>
@@ -212,12 +236,16 @@ export default function DataTable({ monthly }: DataTableProps) {
                   <td className="px-3 py-2 text-right text-gray-900">
                     {formatCurrency(record.hoa)}
                   </td>
-                  <td className="px-3 py-2 text-right text-gray-900">
-                    {formatCurrency(record.homeValue)}
-                  </td>
-                  <td className="px-3 py-2 text-right text-gray-900">
-                    {formatNumber(record.percentagePaidOff * 100, 1)}%
-                  </td>
+                  {showDetailColumns && (
+                    <>
+                      <td className="px-3 py-2 text-right text-gray-900">
+                        {formatCurrency(record.homeValue)}
+                      </td>
+                      <td className="px-3 py-2 text-right text-gray-900">
+                        {formatNumber(record.percentagePaidOff * 100, 1)}%
+                      </td>
+                    </>
+                  )}
                   <td className="px-3 py-2 text-right text-gray-900 font-medium">
                     {formatCurrency(record.equity)}
                   </td>
