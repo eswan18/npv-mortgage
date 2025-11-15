@@ -30,10 +30,6 @@ function calculateMortgagePayment(
 export function runModel(inputs: Inputs): ModelResult {
   // Derived constants
   const months = inputs.analysisYears * 12;
-  const sellMonthIndex =
-    inputs.sellAfterYears != null
-      ? inputs.sellAfterYears * 12
-      : months;
 
   const discountRateMonthly = annualToMonthly(inputs.discountRateAnnual);
   const mortgageRateMonthly = annualToMonthly(inputs.mortgageRateAnnual);
@@ -121,7 +117,6 @@ export function runModel(inputs: Inputs): ModelResult {
     homeValue: homeValues[0],
     percentagePaidOff: percentagePaidOff0,
     equity: equity0,
-    saleProceeds: 0,
     buyCF: buyCF0,
     buyDiscountedCF: buyDiscountedCF0,
     buyCumulativeNPV: buyDiscountedCF0,
@@ -170,20 +165,8 @@ export function runModel(inputs: Inputs): ModelResult {
       hoa
     );
 
-    // Sale proceeds (only in sell month)
-    // Sale proceeds are positive (inflow)
-    let saleProceeds = 0;
-    if (i === sellMonthIndex) {
-      const remainingLoanBalance = mortgageBalances[i];
-      const grossSale = homeValues[i];
-      const sellingCosts =
-        grossSale * inputs.sellingCostPercentOfHomeValue;
-      const netSaleProceeds = grossSale - sellingCosts - remainingLoanBalance;
-      saleProceeds = netSaleProceeds; // positive (inflow)
-    }
-
-    // Buy cash flow: negative outflows + positive sale proceeds
-    const buyCF = buyOperatingOutflow + saleProceeds;
+    // Buy cash flow: negative outflows
+    const buyCF = buyOperatingOutflow;
 
     // Rent cash flow (outflows are negative)
     const rentCF = -(rentPayments[i] + renterInsuranceMonthly + otherRentCostsMonthly);
@@ -196,9 +179,7 @@ export function runModel(inputs: Inputs): ModelResult {
 
     // Include equity CHANGE as a positive value in cash flow (net worth approach)
     // The change in equity offsets the negative cash outflows
-    // At sale time, we already get sale proceeds (which includes all equity), 
-    // so we don't add equity change to avoid double counting
-    const equityChange = i === sellMonthIndex ? 0 : (equity - previousEquity);
+    const equityChange = equity - previousEquity;
     const buyCFWithEquity = buyCF + equityChange;
     previousEquity = equity; // Update for next iteration
 
@@ -236,7 +217,6 @@ export function runModel(inputs: Inputs): ModelResult {
       homeValue: homeValues[i],
       percentagePaidOff,
       equity,
-      saleProceeds,
       buyCF: buyCFWithEquity,
       buyDiscountedCF,
       buyCumulativeNPV,
@@ -262,7 +242,6 @@ export function runModel(inputs: Inputs): ModelResult {
     buyTotalNPV: buyCumulativeNPV,
     rentTotalNPV: rentCumulativeNPV,
     npvDifference: rentCumulativeNPV - buyCumulativeNPV,
-    sellMonthIndex,
     breakEvenMonthIndex,
     breakEvenYears,
   };
@@ -291,8 +270,6 @@ export function getDefaultInputs(): Inputs {
     insuranceAnnual: 2000,
     maintenanceRateAnnual: 0.01,
     homeAppreciationRateAnnual: 0.03,
-    sellingCostPercentOfHomeValue: 0.06,
-    sellAfterYears: null,
     closingCosts: 0,
     loanFees: 0,
     includeOpportunityCost: false,

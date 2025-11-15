@@ -42,7 +42,6 @@ function exportToCSV(monthly: MonthRecord[]) {
     'Home Value',
     'Percentage Paid Off',
     'Equity',
-    'Sale Proceeds',
     'Buy CF',
     'Buy Disc CF',
     'Buy Cum NPV',
@@ -67,7 +66,6 @@ function exportToCSV(monthly: MonthRecord[]) {
     record.homeValue,
     record.percentagePaidOff,
     record.equity,
-    record.saleProceeds,
     record.buyCF,
     record.buyDiscountedCF,
     record.buyCumulativeNPV,
@@ -132,7 +130,6 @@ export default function DataTable({ monthly }: DataTableProps) {
               <th className="px-3 py-3 text-right font-medium text-gray-700">Home Value</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">% Paid Off</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">Equity</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Sale Proceeds</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">Buy CF</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">Buy Disc CF</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">Buy Cum NPV</th>
@@ -187,9 +184,6 @@ export default function DataTable({ monthly }: DataTableProps) {
                 </td>
                 <td className="px-3 py-2 text-right text-gray-900 font-medium">
                   {formatCurrency(record.equity)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {record.saleProceeds !== 0 ? formatCurrency(record.saleProceeds) : '-'}
                 </td>
                 <td className="px-3 py-2 text-right text-gray-900">
                   {formatCurrency(record.buyCF)}

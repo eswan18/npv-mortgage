@@ -14,8 +14,6 @@ export type Inputs = {
   insuranceAnnual: number;
   maintenanceRateAnnual: number;
   homeAppreciationRateAnnual: number;
-  sellingCostPercentOfHomeValue: number;
-  sellAfterYears?: number | null;
   closingCosts?: number;
   loanFees?: number;
   includeOpportunityCost?: boolean;
@@ -48,7 +46,6 @@ export type MonthRecord = {
   homeValue: number;
   percentagePaidOff: number; // percentage of loan paid off (0-1)
   equity: number; // percentagePaidOff * homeValue
-  saleProceeds: number; // 0 except in sell month, then netSaleProceeds
   buyCF: number;
   buyDiscountedCF: number;
   buyCumulativeNPV: number;
@@ -60,7 +57,6 @@ export type Summary = {
   buyTotalNPV: number;
   rentTotalNPV: number;
   npvDifference: number; // rent - buy
-  sellMonthIndex: number;
   breakEvenMonthIndex?: number;
   breakEvenYears?: number;
 };
