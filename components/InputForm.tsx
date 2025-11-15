@@ -34,8 +34,25 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
   };
 
   const handleNumberChange = (field: keyof Inputs, value: string) => {
-    const num = parseFloat(value) || 0;
-    handleChange(field, num);
+    // Handle leading zeros: remove leading zeros unless it's a decimal like "0.04"
+    let cleanedValue = value.trim();
+    
+    // If value starts with "0" followed by digits (not "0."), remove leading zeros
+    // Examples: "07" -> "7", "007" -> "7", but "0.7" stays "0.7", "0.04" stays "0.04"
+    if (cleanedValue.match(/^0+[1-9]/) && !cleanedValue.startsWith('0.')) {
+      cleanedValue = cleanedValue.replace(/^0+/, '');
+    }
+    
+    // If value is just "0" or empty, keep it as 0
+    if (cleanedValue === '' || cleanedValue === '0') {
+      handleChange(field, 0);
+      return;
+    }
+    
+    const num = parseFloat(cleanedValue);
+    if (!isNaN(num)) {
+      handleChange(field, num);
+    }
   };
 
   const handleReset = () => {
