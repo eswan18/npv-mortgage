@@ -26,7 +26,6 @@ function formatNumber(value: number, decimals: number = 0): string {
 function exportToCSV(monthly: MonthRecord[]) {
   const headers = [
     'Month',
-    'Date',
     'Rent Payment',
     'Rent CF',
     'Rent Disc CF',
@@ -50,7 +49,6 @@ function exportToCSV(monthly: MonthRecord[]) {
 
   const rows = monthly.map((record) => [
     record.monthIndex,
-    record.date || '',
     record.rentPayment,
     record.rentCF,
     record.rentDiscountedCF,
@@ -170,7 +168,6 @@ export default function DataTable({ monthly }: DataTableProps) {
             <thead className="bg-gray-50 sticky top-0">
               <tr>
                 <th className="px-3 py-3 text-left font-medium text-gray-700">Month</th>
-                <th className="px-3 py-3 text-left font-medium text-gray-700">Date</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Pmt</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Int</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Prin</th>
@@ -191,7 +188,6 @@ export default function DataTable({ monthly }: DataTableProps) {
               {buyPaginatedData.map((record) => (
                 <tr key={record.monthIndex} className="hover:bg-gray-50">
                   <td className="px-3 py-2 text-gray-900">{record.monthIndex}</td>
-                  <td className="px-3 py-2 text-gray-600">{record.date || '-'}</td>
                   <td className="px-3 py-2 text-right text-gray-900">
                     {formatCurrency(record.mortgagePayment)}
                   </td>
@@ -262,7 +258,6 @@ export default function DataTable({ monthly }: DataTableProps) {
             <thead className="bg-gray-50 sticky top-0">
               <tr>
                 <th className="px-3 py-3 text-left font-medium text-gray-700">Month</th>
-                <th className="px-3 py-3 text-left font-medium text-gray-700">Date</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Rent Payment</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">Rent CF</th>
                 <th className="px-3 py-3 text-right font-medium text-gray-700">NPV (Month)</th>
@@ -273,7 +268,6 @@ export default function DataTable({ monthly }: DataTableProps) {
               {rentPaginatedData.map((record) => (
                 <tr key={record.monthIndex} className="hover:bg-gray-50">
                   <td className="px-3 py-2 text-gray-900">{record.monthIndex}</td>
-                  <td className="px-3 py-2 text-gray-600">{record.date || '-'}</td>
                   <td className="px-3 py-2 text-right text-gray-900">
                     {formatCurrency(record.rentPayment)}
                   </td>

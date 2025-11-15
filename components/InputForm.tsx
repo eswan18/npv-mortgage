@@ -57,17 +57,6 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Start Date (optional)
-              </label>
-              <input
-                type="date"
-                value={inputs.startDate || ''}
-                onChange={(e) => handleChange('startDate', e.target.value || null)}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
           </div>
         </div>
 

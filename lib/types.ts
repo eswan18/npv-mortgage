@@ -2,7 +2,6 @@ export type Inputs = {
   // Global
   analysisYears: number;
   discountRateAnnual: number;
-  startDate?: string | null;
 
   // Buy scenario
   homePrice: number;
@@ -28,7 +27,6 @@ export type Inputs = {
 
 export type MonthRecord = {
   monthIndex: number; // 0..months
-  date?: string; // optional, ISO date if startDate given
   // Rent
   rentPayment: number; // before extras
   rentCF: number;

@@ -101,7 +101,6 @@ export function runModel(inputs: Inputs): ModelResult {
 
   monthly.push({
     monthIndex: 0,
-    date: inputs.startDate || undefined,
     rentPayment: rentPayments[0],
     rentCF: rentCF0,
     rentDiscountedCF: rentDiscountedCF0,
@@ -191,17 +190,8 @@ export function runModel(inputs: Inputs): ModelResult {
     buyCumulativeNPV += buyDiscountedCF;
     rentCumulativeNPV += rentDiscountedCF;
 
-    // Calculate date if startDate provided
-    let date: string | undefined;
-    if (inputs.startDate) {
-      const start = new Date(inputs.startDate);
-      start.setMonth(start.getMonth() + i);
-      date = start.toISOString().split('T')[0];
-    }
-
     monthly.push({
       monthIndex: i,
-      date,
       rentPayment: rentPayments[i],
       rentCF,
       rentDiscountedCF,
@@ -260,7 +250,6 @@ export function getDefaultInputs(): Inputs {
   return {
     analysisYears: 30,
     discountRateAnnual: 0.05,
-    startDate: null,
     homePrice: 500000,
     downPaymentPercent: 0.2,
     mortgageRateAnnual: 0.06,
