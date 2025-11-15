@@ -9,8 +9,33 @@ interface InputFormProps {
 }
 
 export default function InputForm({ inputs, onChange }: InputFormProps) {
+  // Helper function to round to avoid floating point errors
+  const roundToPrecision = (value: number, decimals: number = 6): number => {
+    return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+  };
+
+  // Helper to convert percentage display value to decimal storage value
+  const percentageToDecimal = (value: string): number => {
+    const num = parseFloat(value) || 0;
+    return roundToPrecision(num / 100, 6);
+  };
+
+  // Helper to convert decimal storage value to percentage display value
+  const decimalToPercentage = (value: number): number => {
+    return roundToPrecision(value * 100, 3);
+  };
+
   const handleChange = (field: keyof Inputs, value: number | string | null | boolean) => {
+    // Round numeric values to avoid floating point errors
+    if (typeof value === 'number') {
+      value = roundToPrecision(value, 6);
+    }
     onChange({ ...inputs, [field]: value });
+  };
+
+  const handleNumberChange = (field: keyof Inputs, value: string) => {
+    const num = parseFloat(value) || 0;
+    handleChange(field, num);
   };
 
   const handleReset = () => {
@@ -41,7 +66,7 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 value={inputs.analysisYears}
-                onChange={(e) => handleChange('analysisYears', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumberChange('analysisYears', e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -52,8 +77,8 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 step="0.001"
-                value={inputs.discountRateAnnual * 100}
-                onChange={(e) => handleChange('discountRateAnnual', (parseFloat(e.target.value) || 0) / 100)}
+                value={decimalToPercentage(inputs.discountRateAnnual)}
+                onChange={(e) => handleChange('discountRateAnnual', percentageToDecimal(e.target.value))}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -71,7 +96,7 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 value={inputs.homePrice}
-                onChange={(e) => handleChange('homePrice', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumberChange('homePrice', e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -82,8 +107,8 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 step="0.1"
-                value={inputs.downPaymentPercent * 100}
-                onChange={(e) => handleChange('downPaymentPercent', (parseFloat(e.target.value) || 0) / 100)}
+                value={decimalToPercentage(inputs.downPaymentPercent)}
+                onChange={(e) => handleChange('downPaymentPercent', percentageToDecimal(e.target.value))}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -94,8 +119,8 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 step="0.001"
-                value={inputs.mortgageRateAnnual * 100}
-                onChange={(e) => handleChange('mortgageRateAnnual', (parseFloat(e.target.value) || 0) / 100)}
+                value={decimalToPercentage(inputs.mortgageRateAnnual)}
+                onChange={(e) => handleChange('mortgageRateAnnual', percentageToDecimal(e.target.value))}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -117,7 +142,7 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 value={inputs.hoaMonthly}
-                onChange={(e) => handleChange('hoaMonthly', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumberChange('hoaMonthly', e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -128,8 +153,8 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 step="0.001"
-                value={inputs.propertyTaxRateAnnual * 100}
-                onChange={(e) => handleChange('propertyTaxRateAnnual', (parseFloat(e.target.value) || 0) / 100)}
+                value={decimalToPercentage(inputs.propertyTaxRateAnnual)}
+                onChange={(e) => handleChange('propertyTaxRateAnnual', percentageToDecimal(e.target.value))}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -140,7 +165,7 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 value={inputs.insuranceAnnual}
-                onChange={(e) => handleChange('insuranceAnnual', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumberChange('insuranceAnnual', e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -151,8 +176,8 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 step="0.001"
-                value={inputs.maintenanceRateAnnual * 100}
-                onChange={(e) => handleChange('maintenanceRateAnnual', (parseFloat(e.target.value) || 0) / 100)}
+                value={decimalToPercentage(inputs.maintenanceRateAnnual)}
+                onChange={(e) => handleChange('maintenanceRateAnnual', percentageToDecimal(e.target.value))}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -163,8 +188,8 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 step="0.001"
-                value={inputs.homeAppreciationRateAnnual * 100}
-                onChange={(e) => handleChange('homeAppreciationRateAnnual', (parseFloat(e.target.value) || 0) / 100)}
+                value={decimalToPercentage(inputs.homeAppreciationRateAnnual)}
+                onChange={(e) => handleChange('homeAppreciationRateAnnual', percentageToDecimal(e.target.value))}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -175,7 +200,7 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 value={inputs.closingCosts || 0}
-                onChange={(e) => handleChange('closingCosts', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumberChange('closingCosts', e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -186,7 +211,7 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 value={inputs.loanFees || 0}
-                onChange={(e) => handleChange('loanFees', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumberChange('loanFees', e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -204,7 +229,7 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 value={inputs.initialMonthlyRent}
-                onChange={(e) => handleChange('initialMonthlyRent', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumberChange('initialMonthlyRent', e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -215,8 +240,8 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 step="0.001"
-                value={inputs.rentInflationRateAnnual * 100}
-                onChange={(e) => handleChange('rentInflationRateAnnual', (parseFloat(e.target.value) || 0) / 100)}
+                value={decimalToPercentage(inputs.rentInflationRateAnnual)}
+                onChange={(e) => handleChange('rentInflationRateAnnual', percentageToDecimal(e.target.value))}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -227,7 +252,7 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 value={inputs.renterInsuranceMonthly || 0}
-                onChange={(e) => handleChange('renterInsuranceMonthly', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumberChange('renterInsuranceMonthly', e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -238,7 +263,7 @@ export default function InputForm({ inputs, onChange }: InputFormProps) {
               <input
                 type="number"
                 value={inputs.otherRentCostsMonthly || 0}
-                onChange={(e) => handleChange('otherRentCostsMonthly', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleNumberChange('otherRentCostsMonthly', e.target.value)}
                 className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
