@@ -86,21 +86,73 @@ function exportToCSV(monthly: MonthRecord[]) {
   window.URL.revokeObjectURL(url);
 }
 
-export default function DataTable({ monthly }: DataTableProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 50;
-
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    return monthly.slice(start, end);
-  }, [monthly, currentPage]);
-
-  const totalPages = Math.ceil(monthly.length / itemsPerPage);
+function TablePagination({
+  currentPage,
+  totalPages,
+  totalItems,
+  itemsPerPage,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-      <div className="flex items-center justify-between mb-4">
+    <div className="mt-4 flex items-center justify-between">
+      <div className="text-sm text-gray-700">
+        Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
+        {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} months
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1}
+          className="px-4 py-2 text-sm bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <span className="px-4 py-2 text-sm text-gray-700">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages}
+          className="px-4 py-2 text-sm bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function DataTable({ monthly }: DataTableProps) {
+  const [buyPage, setBuyPage] = useState(1);
+  const [rentPage, setRentPage] = useState(1);
+  const itemsPerPage = 50;
+
+  const buyPaginatedData = useMemo(() => {
+    const start = (buyPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return monthly.slice(start, end);
+  }, [monthly, buyPage]);
+
+  const rentPaginatedData = useMemo(() => {
+    const start = (rentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return monthly.slice(start, end);
+  }, [monthly, rentPage]);
+
+  const buyTotalPages = Math.ceil(monthly.length / itemsPerPage);
+  const rentTotalPages = Math.ceil(monthly.length / itemsPerPage);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold">Month-by-Month Details</h3>
         <button
           onClick={() => exportToCSV(monthly)}
@@ -109,124 +161,150 @@ export default function DataTable({ monthly }: DataTableProps) {
           Export to CSV
         </button>
       </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50 sticky top-0">
-            <tr>
-              <th className="px-3 py-3 text-left font-medium text-gray-700">Month</th>
-              <th className="px-3 py-3 text-left font-medium text-gray-700">Date</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Rent Payment</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Rent CF</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Rent Disc CF</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Rent Cum NPV</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Pmt</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Int</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Prin</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Bal</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Prop Tax</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Maint</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Insurance</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">HOA</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Home Value</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">% Paid Off</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Equity</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Buy CF</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Buy Disc CF</th>
-              <th className="px-3 py-3 text-right font-medium text-gray-700">Buy Cum NPV</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedData.map((record) => (
-              <tr key={record.monthIndex} className="hover:bg-gray-50">
-                <td className="px-3 py-2 text-gray-900">{record.monthIndex}</td>
-                <td className="px-3 py-2 text-gray-600">{record.date || '-'}</td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.rentPayment)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.rentCF)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.rentDiscountedCF)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.rentCumulativeNPV)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.mortgagePayment)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.mortgageInterest)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.mortgagePrincipal)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.mortgageBalance)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.propertyTax)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.maintenance)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.insurance)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.hoa)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.homeValue)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatNumber(record.percentagePaidOff * 100, 1)}%
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900 font-medium">
-                  {formatCurrency(record.equity)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.buyCF)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900">
-                  {formatCurrency(record.buyDiscountedCF)}
-                </td>
-                <td className="px-3 py-2 text-right text-gray-900 font-medium">
-                  {formatCurrency(record.buyCumulativeNPV)}
-                </td>
+
+      {/* Buy Scenario Table */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h4 className="text-lg font-semibold mb-4">Buy Scenario</h4>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                <th className="px-3 py-3 text-left font-medium text-gray-700">Month</th>
+                <th className="px-3 py-3 text-left font-medium text-gray-700">Date</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Pmt</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Int</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Prin</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Mortgage Bal</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Prop Tax</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Maint</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Insurance</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">HOA</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Home Value</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">% Paid Off</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Equity</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Buy CF</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">NPV (Month)</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Cumulative NPV</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
-            {Math.min(currentPage * itemsPerPage, monthly.length)} of {monthly.length} months
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 text-sm bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            <span className="px-4 py-2 text-sm text-gray-700">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
-          </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {buyPaginatedData.map((record) => (
+                <tr key={record.monthIndex} className="hover:bg-gray-50">
+                  <td className="px-3 py-2 text-gray-900">{record.monthIndex}</td>
+                  <td className="px-3 py-2 text-gray-600">{record.date || '-'}</td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.mortgagePayment)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.mortgageInterest)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.mortgagePrincipal)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.mortgageBalance)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.propertyTax)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.maintenance)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.insurance)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.hoa)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.homeValue)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatNumber(record.percentagePaidOff * 100, 1)}%
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900 font-medium">
+                    {formatCurrency(record.equity)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.buyCF)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.buyDiscountedCF)}
+                  </td>
+                  <td
+                    className={`px-3 py-2 text-right font-bold ${
+                      record.buyCumulativeNPV >= 0
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}
+                  >
+                    {formatCurrency(record.buyCumulativeNPV)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+        <TablePagination
+          currentPage={buyPage}
+          totalPages={buyTotalPages}
+          totalItems={monthly.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setBuyPage}
+        />
+      </div>
+
+      {/* Rent Scenario Table */}
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h4 className="text-lg font-semibold mb-4">Rent Scenario</h4>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50 sticky top-0">
+              <tr>
+                <th className="px-3 py-3 text-left font-medium text-gray-700">Month</th>
+                <th className="px-3 py-3 text-left font-medium text-gray-700">Date</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Rent Payment</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Rent CF</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">NPV (Month)</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-700">Cumulative NPV</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {rentPaginatedData.map((record) => (
+                <tr key={record.monthIndex} className="hover:bg-gray-50">
+                  <td className="px-3 py-2 text-gray-900">{record.monthIndex}</td>
+                  <td className="px-3 py-2 text-gray-600">{record.date || '-'}</td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.rentPayment)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.rentCF)}
+                  </td>
+                  <td className="px-3 py-2 text-right text-gray-900">
+                    {formatCurrency(record.rentDiscountedCF)}
+                  </td>
+                  <td
+                    className={`px-3 py-2 text-right font-bold ${
+                      record.rentCumulativeNPV >= 0
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}
+                  >
+                    {formatCurrency(record.rentCumulativeNPV)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <TablePagination
+          currentPage={rentPage}
+          totalPages={rentTotalPages}
+          totalItems={monthly.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setRentPage}
+        />
+      </div>
     </div>
   );
 }
-
