@@ -40,6 +40,8 @@ function exportToCSV(monthly: MonthRecord[]) {
     'Insurance',
     'HOA',
     'Home Value',
+    'Percentage Paid Off',
+    'Equity',
     'Sale Proceeds',
     'Buy CF',
     'Buy Disc CF',
@@ -63,6 +65,8 @@ function exportToCSV(monthly: MonthRecord[]) {
     record.insurance,
     record.hoa,
     record.homeValue,
+    record.percentagePaidOff,
+    record.equity,
     record.saleProceeds,
     record.buyCF,
     record.buyDiscountedCF,
@@ -126,6 +130,8 @@ export default function DataTable({ monthly }: DataTableProps) {
               <th className="px-3 py-3 text-right font-medium text-gray-700">Insurance</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">HOA</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">Home Value</th>
+              <th className="px-3 py-3 text-right font-medium text-gray-700">% Paid Off</th>
+              <th className="px-3 py-3 text-right font-medium text-gray-700">Equity</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">Sale Proceeds</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">Buy CF</th>
               <th className="px-3 py-3 text-right font-medium text-gray-700">Buy Disc CF</th>
@@ -175,6 +181,12 @@ export default function DataTable({ monthly }: DataTableProps) {
                 </td>
                 <td className="px-3 py-2 text-right text-gray-900">
                   {formatCurrency(record.homeValue)}
+                </td>
+                <td className="px-3 py-2 text-right text-gray-900">
+                  {formatNumber(record.percentagePaidOff * 100, 1)}%
+                </td>
+                <td className="px-3 py-2 text-right text-gray-900 font-medium">
+                  {formatCurrency(record.equity)}
                 </td>
                 <td className="px-3 py-2 text-right text-gray-900">
                   {record.saleProceeds !== 0 ? formatCurrency(record.saleProceeds) : '-'}

@@ -87,8 +87,18 @@ export function runModel(inputs: Inputs): ModelResult {
 
   // Month 0 - Initial cash flows
   // Outflows are negative
-  const buyCF0 = -(downPayment + closingCosts + loanFees);
+  const buyCF0Base = -(downPayment + closingCosts + loanFees);
   const rentCF0 = 0;
+
+  // Calculate equity for month 0
+  const percentagePaidOff0 = loanAmount > 0 
+    ? (loanAmount - mortgageBalances[0]) / loanAmount 
+    : 1; // If no loan, 100% paid off
+  const equity0 = percentagePaidOff0 * homeValues[0];
+
+  // Include equity as positive value (net worth approach)
+  // At month 0, equity = down payment portion of home value
+  const buyCF0 = buyCF0Base + equity0;
 
   const buyDiscountedCF0 = buyCF0 * discountFactors[0];
   const rentDiscountedCF0 = rentCF0 * discountFactors[0];
@@ -109,6 +119,8 @@ export function runModel(inputs: Inputs): ModelResult {
     insurance: 0,
     hoa: 0,
     homeValue: homeValues[0],
+    percentagePaidOff: percentagePaidOff0,
+    equity: equity0,
     saleProceeds: 0,
     buyCF: buyCF0,
     buyDiscountedCF: buyDiscountedCF0,
@@ -119,6 +131,7 @@ export function runModel(inputs: Inputs): ModelResult {
   // Months 1 to months
   let buyCumulativeNPV = buyDiscountedCF0;
   let rentCumulativeNPV = rentDiscountedCF0;
+  let previousEquity = equity0; // Track previous month's equity to calculate change
 
   for (let i = 1; i <= months; i++) {
     // Mortgage calculations
@@ -175,8 +188,22 @@ export function runModel(inputs: Inputs): ModelResult {
     // Rent cash flow (outflows are negative)
     const rentCF = -(rentPayments[i] + renterInsuranceMonthly + otherRentCostsMonthly);
 
+    // Calculate equity: percentage paid off * current home value
+    const percentagePaidOff = loanAmount > 0 
+      ? (loanAmount - mortgageBalances[i]) / loanAmount 
+      : 1; // If no loan, 100% paid off
+    const equity = percentagePaidOff * homeValues[i];
+
+    // Include equity CHANGE as a positive value in cash flow (net worth approach)
+    // The change in equity offsets the negative cash outflows
+    // At sale time, we already get sale proceeds (which includes all equity), 
+    // so we don't add equity change to avoid double counting
+    const equityChange = i === sellMonthIndex ? 0 : (equity - previousEquity);
+    const buyCFWithEquity = buyCF + equityChange;
+    previousEquity = equity; // Update for next iteration
+
     // Discounted cash flows
-    const buyDiscountedCF = buyCF * discountFactors[i];
+    const buyDiscountedCF = buyCFWithEquity * discountFactors[i];
     const rentDiscountedCF = rentCF * discountFactors[i];
 
     // Cumulative NPV
@@ -207,8 +234,10 @@ export function runModel(inputs: Inputs): ModelResult {
       insurance,
       hoa,
       homeValue: homeValues[i],
+      percentagePaidOff,
+      equity,
       saleProceeds,
-      buyCF,
+      buyCF: buyCFWithEquity,
       buyDiscountedCF,
       buyCumulativeNPV,
       discountFactor: discountFactors[i],

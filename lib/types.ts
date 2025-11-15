@@ -46,6 +46,8 @@ export type MonthRecord = {
   insurance: number;
   hoa: number;
   homeValue: number;
+  percentagePaidOff: number; // percentage of loan paid off (0-1)
+  equity: number; // percentagePaidOff * homeValue
   saleProceeds: number; // 0 except in sell month, then netSaleProceeds
   buyCF: number;
   buyDiscountedCF: number;
