@@ -23,7 +23,7 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
   const advantage = Math.abs(summary.npvDifference);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <h3 className="text-sm font-medium text-gray-500 mb-2">Buy Total NPV</h3>
         <p className="text-2xl font-bold text-gray-900">
@@ -53,14 +53,25 @@ export default function SummaryCards({ summary }: SummaryCardsProps) {
             : 'Renting is cheaper on NPV basis'}
         </p>
       </div>
-      {summary.breakEvenMonthIndex !== undefined && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 md:col-span-3">
+      {summary.breakEvenMonthIndex !== undefined ? (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
           <h3 className="text-sm font-medium text-gray-500 mb-2">Break-Even Point</h3>
           <p className="text-xl font-semibold text-gray-900">
-            Month {summary.breakEvenMonthIndex} ({summary.breakEvenYears?.toFixed(1)} years)
+            Month {summary.breakEvenMonthIndex}
+          </p>
+          <p className="text-sm font-medium text-gray-700">
+            {summary.breakEvenYears?.toFixed(1)} years
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            Point where buying becomes cheaper than renting on NPV basis
+            Buying becomes cheaper than renting
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Break-Even Point</h3>
+          <p className="text-xl font-semibold text-gray-400">N/A</p>
+          <p className="text-xs text-gray-500 mt-1">
+            No break-even point found
           </p>
         </div>
       )}
