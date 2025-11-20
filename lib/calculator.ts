@@ -1,16 +1,20 @@
 import { Inputs, MonthRecord, ModelResult, Summary } from './types';
 
 /**
- * Convert annual rate to monthly rate
+ * Convert annual rate to monthly rate using compound interest formula
+ * (1 + annual)^(1/12) - 1
  */
-function annualToMonthly(annualRate: number): number {
+export function annualToMonthly(annualRate: number): number {
   return Math.pow(1 + annualRate, 1 / 12) - 1;
 }
 
 /**
  * Calculate monthly mortgage payment using PMT formula
+ * PMT = P * [r(1+r)^n] / [(1+r)^n - 1]
+ * where P = loan amount, r = monthly rate, n = number of payments
+ * Special case: if rate is 0, payment = loan amount / number of payments
  */
-function calculateMortgagePayment(
+export function calculateMortgagePayment(
   loanAmount: number,
   monthlyRate: number,
   numPayments: number
@@ -22,6 +26,59 @@ function calculateMortgagePayment(
     (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) /
     (Math.pow(1 + monthlyRate, numPayments) - 1)
   );
+}
+
+/**
+ * Calculate discount factor for a given period
+ * DF = 1 / (1 + r)^n
+ */
+export function calculateDiscountFactor(
+  monthlyRate: number,
+  periodIndex: number
+): number {
+  return 1 / Math.pow(1 + monthlyRate, periodIndex);
+}
+
+/**
+ * Calculate mortgage amortization for a single period
+ * Returns { interest, principal, newBalance }
+ */
+export function calculateAmortizationStep(
+  currentBalance: number,
+  monthlyPayment: number,
+  monthlyRate: number
+): { interest: number; principal: number; newBalance: number } {
+  if (currentBalance <= 0) {
+    return { interest: 0, principal: 0, newBalance: 0 };
+  }
+
+  const interest = currentBalance * monthlyRate;
+  let principal = monthlyPayment - interest;
+
+  // Ensure we don't overpay in final month
+  if (principal > currentBalance) {
+    principal = currentBalance;
+  }
+
+  const newBalance = Math.max(0, currentBalance - principal);
+
+  return { interest, principal, newBalance };
+}
+
+/**
+ * Calculate equity (net worth in the home)
+ * Equity = Home Value - Remaining Loan Balance
+ *
+ * This correctly accounts for the fact that you own the entire home
+ * (not just a percentage), and the loan is a liability against it.
+ * All appreciation accrues to you, regardless of how much you've paid off.
+ */
+export function calculateEquity(
+  originalLoanAmount: number,
+  currentBalance: number,
+  currentHomeValue: number
+): number {
+  return currentHomeValue - currentBalance;
 }
 
 /**
@@ -83,21 +140,22 @@ export function runModel(inputs: Inputs): ModelResult {
 
   // Month 0 - Initial cash flows
   // Outflows are negative
-  const buyCF0Base = -(downPayment + closingCosts + loanFees);
+  const buyCF0 = -(downPayment + closingCosts + loanFees);
   const rentCF0 = 0;
 
   // Calculate equity for month 0
-  const percentagePaidOff0 = loanAmount > 0 
-    ? (loanAmount - mortgageBalances[0]) / loanAmount 
+  const equity0 = calculateEquity(loanAmount, mortgageBalances[0], homeValues[0]);
+  const percentagePaidOff0 = loanAmount > 0
+    ? (loanAmount - mortgageBalances[0]) / loanAmount
     : 1; // If no loan, 100% paid off
-  const equity0 = percentagePaidOff0 * homeValues[0];
 
-  // Include equity as positive value (net worth approach)
-  // At month 0, equity = down payment portion of home value
-  const buyCF0 = buyCF0Base + equity0;
-
+  // Discounted cash flows
   const buyDiscountedCF0 = buyCF0 * discountFactors[0];
   const rentDiscountedCF0 = rentCF0 * discountFactors[0];
+
+  // NPV at month 0 = cash flow + discounted equity value
+  const discountedEquity0 = equity0 * discountFactors[0];
+  const buyCumulativeNPV0 = buyDiscountedCF0 + discountedEquity0;
 
   monthly.push({
     monthIndex: 0,
@@ -116,9 +174,9 @@ export function runModel(inputs: Inputs): ModelResult {
     homeValue: homeValues[0],
     percentagePaidOff: percentagePaidOff0,
     equity: equity0,
-    buyCF: buyCF0,
+    buyCF: buyCF0, // Just the cash out
     buyDiscountedCF: buyDiscountedCF0,
-    buyCumulativeNPV: buyDiscountedCF0,
+    buyCumulativeNPV: buyCumulativeNPV0, // Cash flows + discounted equity
     discountFactor: discountFactors[0],
   });
 
@@ -164,31 +222,30 @@ export function runModel(inputs: Inputs): ModelResult {
       hoa
     );
 
-    // Buy cash flow: negative outflows
+    // Buy cash flow: just the actual cash outflows (no equity change)
     const buyCF = buyOperatingOutflow;
 
     // Rent cash flow (outflows are negative)
     const rentCF = -(rentPayments[i] + renterInsuranceMonthly + otherRentCostsMonthly);
 
-    // Calculate equity: percentage paid off * current home value
-    const percentagePaidOff = loanAmount > 0 
-      ? (loanAmount - mortgageBalances[i]) / loanAmount 
+    // Calculate equity: home value - remaining loan balance
+    // This is a STOCK (balance), not a FLOW (monthly change)
+    const equity = calculateEquity(loanAmount, mortgageBalances[i], homeValues[i]);
+    const percentagePaidOff = loanAmount > 0
+      ? (loanAmount - mortgageBalances[i]) / loanAmount
       : 1; // If no loan, 100% paid off
-    const equity = percentagePaidOff * homeValues[i];
 
-    // Include equity CHANGE as a positive value in cash flow (net worth approach)
-    // The change in equity offsets the negative cash outflows
-    const equityChange = equity - previousEquity;
-    const buyCFWithEquity = buyCF + equityChange;
-    previousEquity = equity; // Update for next iteration
-
-    // Discounted cash flows
-    const buyDiscountedCF = buyCFWithEquity * discountFactors[i];
+    // Discounted cash flows (just actual cash, not equity changes)
+    const buyDiscountedCF = buyCF * discountFactors[i];
     const rentDiscountedCF = rentCF * discountFactors[i];
 
-    // Cumulative NPV
+    // Cumulative NPV of cash flows
     buyCumulativeNPV += buyDiscountedCF;
     rentCumulativeNPV += rentDiscountedCF;
+
+    // Add discounted equity value (terminal/liquidation value at this point)
+    const discountedEquity = equity * discountFactors[i];
+    const buyCumulativeNPVWithEquity = buyCumulativeNPV + discountedEquity;
 
     monthly.push({
       monthIndex: i,
@@ -207,9 +264,9 @@ export function runModel(inputs: Inputs): ModelResult {
       homeValue: homeValues[i],
       percentagePaidOff,
       equity,
-      buyCF: buyCFWithEquity,
+      buyCF, // Just the cash flow, not including equity change
       buyDiscountedCF,
-      buyCumulativeNPV,
+      buyCumulativeNPV: buyCumulativeNPVWithEquity, // Cash flows + discounted equity
       discountFactor: discountFactors[i],
     });
   }
@@ -227,11 +284,14 @@ export function runModel(inputs: Inputs): ModelResult {
     }
   }
 
+  // Final NPV from the last month (includes all cash flows + terminal equity)
+  const finalBuyNPV = monthly[monthly.length - 1].buyCumulativeNPV;
+
   const summary: Summary = {
     months,
-    buyTotalNPV: buyCumulativeNPV,
+    buyTotalNPV: finalBuyNPV,
     rentTotalNPV: rentCumulativeNPV,
-    npvDifference: rentCumulativeNPV - buyCumulativeNPV,
+    npvDifference: rentCumulativeNPV - finalBuyNPV,
     breakEvenMonthIndex,
     breakEvenYears,
   };
