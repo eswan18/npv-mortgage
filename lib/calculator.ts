@@ -183,7 +183,6 @@ export function runModel(inputs: Inputs): ModelResult {
   // Months 1 to months
   let buyCumulativeNPV = buyDiscountedCF0;
   let rentCumulativeNPV = rentDiscountedCF0;
-  let previousEquity = equity0; // Track previous month's equity to calculate change
 
   for (let i = 1; i <= months; i++) {
     // Mortgage calculations

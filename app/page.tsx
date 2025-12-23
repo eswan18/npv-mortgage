@@ -47,6 +47,7 @@ function CalculatorContent() {
     if (searchParams.toString()) {
       try {
         const urlInputs = deserializeParamsToInputs(searchParams);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncing with URL params (external state)
         setInputs(urlInputs);
       } catch (error) {
         console.error('Error parsing URL params:', error);
@@ -89,6 +90,7 @@ function CalculatorContent() {
   useEffect(() => {
     // Auto-recalculate when inputs change
     const modelResult = runModel(inputs);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Computing derived state
     setResult(modelResult);
   }, [inputs]);
 

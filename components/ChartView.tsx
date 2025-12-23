@@ -61,7 +61,7 @@ export default function ChartView({ monthly }: ChartViewProps) {
             label={{ value: 'Cumulative NPV', angle: -90, position: 'insideLeft' }}
           />
           <Tooltip
-            formatter={(value: number) => formatCurrency(value)}
+            formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
             labelFormatter={(label) => `Month ${label}`}
           />
           <Legend />
